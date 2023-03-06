@@ -3,59 +3,67 @@
 from pathlib import Path
 
 import flwr as fl
+from flwr.common.parameter import ndarrays_to_parameters
 import hydra
 import numpy as np
 import torch
 from omegaconf import DictConfig
 
-import client, utils
+import client, utils, model
 
 DEVICE: torch.device = torch.device("cpu")
 
-
 @hydra.main(config_path="docs/conf", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
-    """Main function to run CNN federated learning on MNIST.
+    """Main function to run CNN federated learning on FEMNIST.
 
     Parameters
     ----------
     cfg : DictConfig
         An omegaconf object that stores the hydra config.
     """
-    client_fn, testloader = client.gen_client_fn(
+
+
+    client_fn, testloader, num_clients = client.gen_client_fn(
         num_epochs=cfg.num_epochs,
         batch_size=cfg.batch_size,
         device=DEVICE,
-        num_clients=cfg.num_clients,
-        iid=cfg.iid,
-        balance=cfg.balance,
-        learning_rate=cfg.learning_rate,
+        learning_rate=cfg.client_learning_rate,
+        learning_rate_decay=cfg.client_learning_rate_decay,
+        gradient_clipping=cfg.gradient_clipping,
+        max_norm=cfg.max_norm
     )
+
+    client_fraction_fit = cfg.num_participating_clients / num_clients
 
     evaluate_fn = utils.gen_evaluate_fn(testloader, DEVICE)
 
-    strategy = fl.server.strategy.FedAvg(
-        fraction_fit=cfg.client_fraction,
+    initialNet = model.Net()
+    seed_model_params = [val.cpu().numpy() for _, val in initialNet.state_dict().items()]
+    initial_parameters = ndarrays_to_parameters(seed_model_params)
+
+    strategy = fl.server.strategy.FedAvgM(
+        fraction_fit=client_fraction_fit,
         fraction_evaluate=0.0,
-        min_fit_clients=int(cfg.num_clients * cfg.client_fraction),
+        min_fit_clients=int(cfg.num_participating_clients),
         min_evaluate_clients=0,
-        min_available_clients=cfg.num_clients,
+        min_available_clients=num_clients,
         evaluate_fn=evaluate_fn,
+        initial_parameters=initial_parameters,
         evaluate_metrics_aggregation_fn=utils.weighted_average,
+        server_learning_rate=cfg.server_learning_rate
     )
+
 
     # Start simulation
     history = fl.simulation.start_simulation(
         client_fn=client_fn,
-        num_clients=cfg.num_clients,
+        num_clients=num_clients,
         config=fl.server.ServerConfig(num_rounds=cfg.num_rounds),
         strategy=strategy,
     )
 
     file_suffix: str = (
-        f"{'_iid' if cfg.iid else ''}"
-        f"{'_balanced' if cfg.balance else ''}"
-        f"_C={cfg.num_clients}"
         f"_B={cfg.batch_size}"
         f"_E={cfg.num_epochs}"
         f"_R={cfg.num_rounds}"
