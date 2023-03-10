@@ -9,7 +9,6 @@ import numpy as np
 import torch
 from omegaconf import DictConfig
 
-from strategy import FedExP
 import client, utils, model
 
 DEVICE: torch.device = torch.device("cpu")
@@ -43,7 +42,7 @@ def main(cfg: DictConfig) -> None:
     seed_model_params = [val.cpu().numpy() for _, val in initialNet.state_dict().items()]
     initial_parameters = ndarrays_to_parameters(seed_model_params)
 
-    strategy = FedExP(
+    strategy = fl.server.strategy.FedProx(
         fraction_fit=client_fraction_fit,
         fraction_evaluate=0.0,
         min_fit_clients=int(cfg.num_participating_clients),
@@ -52,7 +51,7 @@ def main(cfg: DictConfig) -> None:
         evaluate_fn=evaluate_fn,
         initial_parameters=initial_parameters,
         evaluate_metrics_aggregation_fn=utils.weighted_average,
-        ε = cfg.epsilon
+        proximal_mu = cfg.mu
     )
 
 
@@ -67,10 +66,8 @@ def main(cfg: DictConfig) -> None:
     file_suffix: str = (
         f"_B={cfg.batch_size}"
         f"_E={cfg.num_epochs}"
-        f"_R={cfg.num_rounds}"
-        f"_ηl={cfg.client_learning_rate}"
-        f"_ε={cfg.epsilon}"
-        f"_run_num={cfg.run_num}"
+        f"_R={cfg.num_rounds}",
+        f"_μ={cfg.mu}"
     )
 
     np.save(
