@@ -1,6 +1,7 @@
 """Runs CNN federated learning for MNIST dataset."""
 
 from pathlib import Path
+from typing import Callable, Dict
 
 import flwr as fl
 from flwr.common.parameter import ndarrays_to_parameters
@@ -12,6 +13,14 @@ from omegaconf import DictConfig
 import client, utils, model
 
 DEVICE: torch.device = torch.device("cpu")
+
+def get_on_fit_config_fn(base_client_learning_rate: float, learning_rate_decay: float) -> Callable[[int], Dict[str, float]]:
+    def fit_config(server_round: int) -> Dict[str, float]:
+        config = {
+            "learning_rate": base_client_learning_rate * (learning_rate_decay ** server_round)
+        }
+        return config
+    return fit_config
 
 @hydra.main(config_path="docs/conf", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
@@ -28,8 +37,6 @@ def main(cfg: DictConfig) -> None:
         num_epochs=cfg.num_epochs,
         batch_size=cfg.batch_size,
         device=DEVICE,
-        learning_rate=cfg.client_learning_rate,
-        learning_rate_decay=cfg.client_learning_rate_decay,
         gradient_clipping=cfg.gradient_clipping,
         max_norm=cfg.max_norm
     )
@@ -51,7 +58,8 @@ def main(cfg: DictConfig) -> None:
         evaluate_fn=evaluate_fn,
         initial_parameters=initial_parameters,
         evaluate_metrics_aggregation_fn=utils.weighted_average,
-        proximal_mu = cfg.mu
+        proximal_mu = cfg.mu,
+        on_fit_config_fn=get_on_fit_config_fn(cfg.client_learning_rate, cfg.client_learning_rate_decay),
     )
 
 

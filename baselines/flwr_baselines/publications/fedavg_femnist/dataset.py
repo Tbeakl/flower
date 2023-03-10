@@ -14,6 +14,7 @@ import numpy as np
 import torch
 import random
 import torchvision.transforms as transforms
+import os
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, Subset, random_split
 
 from pathlib import Path
@@ -186,6 +187,7 @@ def _download_data(home_dir, dataset_dir):
             )
             
         # Decompress dataset 
-        file = tarfile.open("femnist.tar.gz")
-        file.extractall(dataset_dir)
+        with tarfile.open("femnist.tar.gz") as file:
+            file.extractall(home_dir)
+        os.rename(home_dir / 'femnist', dataset_dir)
         print(f"Dataset extracted in {dataset_dir}")

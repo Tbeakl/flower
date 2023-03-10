@@ -44,7 +44,7 @@ def plot_metric_from_history(
     rounds, values = zip(*metric_dict["accuracy"])
     fig = plt.figure()
     axis = fig.add_subplot(111)
-    plt.plot(np.asarray(rounds), np.asarray(values), label="FedAvg")
+    plt.plot(np.asarray(rounds), np.asarray(values), label="FedExp")
     # Set expected graph for data
     plt.axhline(
         y=expected_maximum,
@@ -59,7 +59,7 @@ def plot_metric_from_history(
         label="Paper's baseline @0.9900",
     )
     plt.ylim([0.97, 1])
-    plt.title(f"{metric_type.capitalize()} Validation - MNIST")
+    plt.title(f"{metric_type.capitalize()} Validation - FEMNIST")
     plt.xlabel("Rounds")
     plt.ylabel("Accuracy")
     plt.legend(loc="lower right")

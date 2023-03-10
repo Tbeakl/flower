@@ -1,4 +1,11 @@
 """Runs AdaptiveFederated Optimization for CIFAR10/100."""
+# import sys
+# sys.path.append("../../")
+# sys.path.append("../")
+# sys.path.append("../../../")
+# sys.path.append("../../../../")
+# sys.path.append("../../../../../")
+
 from os import chdir
 from pathlib import Path
 

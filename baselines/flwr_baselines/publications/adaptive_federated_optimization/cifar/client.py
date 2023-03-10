@@ -15,7 +15,7 @@ from .utils import ClientDataset, get_cifar_model, get_transforms, test, train
 class RayClient(fl.client.NumPyClient):
     """Ray Virtual Client."""
 
-    def __init__(self, cid: str, fed_dir: Path, num_classes: int):
+    def __init__(self, cid: str, fed_dir: Path, num_classes: int, weight_decay: float, gradient_clipping: bool, max_norm: float):
         """Implements Ray Virtual Client.
 
         Args:
@@ -28,6 +28,9 @@ class RayClient(fl.client.NumPyClient):
         self.num_classes = num_classes
         self.properties: Dict[str, Scalar] = {"tensor_type": "numpy.ndarray"}
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.gradient_clipping = gradient_clipping
+        self.max_norm = max_norm
+        self.weight_decay = weight_decay
 
     def get_properties(self, config: Dict[str, Scalar]) -> Dict[str, Scalar]:
         """Returns properties for this client.
@@ -76,7 +79,7 @@ class RayClient(fl.client.NumPyClient):
             transform=get_transforms(self.num_classes)["train"],
         )
         trainloader = DataLoader(trainset, batch_size=int(config["batch_size"]))
-        train(net, trainloader, epochs=int(config["epochs"]), device=self.device)
+        train(net, trainloader, epochs=int(config["epochs"]), device=self.device, learning_rate=config['client_learning_rate'], weight_decay=self.weight_decay, gradient_clipping=self.gradient_clipping, max_norm = self.max_norm)
 
         # return local model and statistics
         weights = [val.cpu().numpy() for _, val in net.state_dict().items()]
@@ -133,7 +136,7 @@ class RayClient(fl.client.NumPyClient):
 
 
 def get_ray_client_fn(
-    fed_dir: Path, num_classes: int = 10
+    fed_dir: Path, num_classes: int = 10, weight_decay: float = 0, gradient_clipping: bool= False, max_norm: float = 10
 ) -> Callable[[str], RayClient]:
     """Function that loads a Ray (Virtual) Client.
 
@@ -147,6 +150,6 @@ def get_ray_client_fn(
 
     def client_fn(cid: str) -> RayClient:
         # create a single client instance
-        return RayClient(cid=cid, fed_dir=fed_dir, num_classes=num_classes)
+        return RayClient(cid=cid, fed_dir=fed_dir, num_classes=num_classes, weight_decay=weight_decay, gradient_clipping=gradient_clipping, max_norm=max_norm)
 
     return client_fn

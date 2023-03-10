@@ -143,9 +143,17 @@ class FedExP(FedAvg):
         # Do not aggregate if there are failures and failures are not accepted
         if not self.accept_failures and failures:
             return None, {}
+        # We are actually transmitting the new weights of each of the clients and then calculating the gradient 
+        # on the server side, compared to what the algorithm says in the paper it will have the same effect and 
+        # allow this strategy to work with the standard clients for training models in comparison to needing to
+        # change them to return the update rather than the raw weights
+        
         # Convert results
         update_results = [
-            (parameters_to_ndarrays(fit_res.parameters), 1) for _, fit_res in results
+            ([
+            x - y
+             for (x,y) in zip(parameters_to_ndarrays(self.initial_parameters), parameters_to_ndarrays(fit_res.parameters))
+            ], 1) for _, fit_res in results
         ]
 
         aggregated_update = aggregate(update_results)
@@ -156,19 +164,19 @@ class FedExP(FedAvg):
         initial_weights = parameters_to_ndarrays(self.initial_parameters)
 
 
-        global_learning_rate = 0
+        server_learning_rate = 0
         M = len(update_results)
         for (update, _) in update_results:
             squared_norm_update = self.compute_norm_squared(update)
-            global_learning_rate += squared_norm_update
-        global_learning_rate /= (2 * M * (squared_norm_aggregated_update + self.ε))
-        print(f"Alternative value suggested {global_learning_rate}")
-        global_learning_rate = max(1, global_learning_rate)
-        print(f"Global Value used: {global_learning_rate}")
+            server_learning_rate += squared_norm_update
+        server_learning_rate /= (2 * M * (squared_norm_aggregated_update + self.ε))
+        print(f"Alternative value suggested {server_learning_rate}")
+        server_learning_rate = max(1, server_learning_rate)
+        print(f"Global Value used: {server_learning_rate}")
 
         # SGD
         fedexp_result = [
-            x - global_learning_rate * y
+            x - server_learning_rate * y
             for x, y in zip(initial_weights, aggregated_update)
         ]
         # Update current weights
@@ -185,5 +193,6 @@ class FedExP(FedAvg):
             log(WARNING, "No fit_metrics_aggregation_fn provided")
 
         # Also add the server learning rate to the metrics which are being recorded
-
+        metrics_aggregated['server_learning_rate'] = server_learning_rate
+        print(metrics_aggregated)
         return parameters_aggregated, metrics_aggregated

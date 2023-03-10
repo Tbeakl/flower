@@ -1,14 +1,14 @@
 ---
 dataset_name: "cifar10"
 num_classes: 10
-batch_size: 20
-epochs_per_round: 1
-lda_concentration: 0.1
-num_clients_per_round: 10
-num_total_clients: 500
-num_rounds: 4000
+batch_size: 50
+epochs_per_round: 20
+lda_concentration: 0.3
+num_clients_per_round: 20
+num_total_clients: 100
+num_rounds: 20
 root_dir: "./data"
-cpus_per_client: 1
+cpus_per_client: 0.3
 gpus_per_client: 0
 hydra.job.chdir: False
 is_simulation: True

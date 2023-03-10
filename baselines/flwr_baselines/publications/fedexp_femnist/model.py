@@ -79,7 +79,7 @@ def train(
         The max_norm which is used in gradient clipping if gradient clipping is happening
     """
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate, weight_decay=0.001)
+    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate, weight_decay=0.0001)
     net.train()
     for _ in range(epochs):
         net = _training_loop(net, trainloader, device, criterion, optimizer, gradient_clipping=gradient_clipping, max_norm=max_norm)

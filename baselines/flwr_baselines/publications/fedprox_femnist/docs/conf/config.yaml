@@ -8,4 +8,4 @@ client_learning_rate_decay: 0.998
 mu: 0.001
 gradient_clipping: True
 max_norm: 10
-save_path: "docs/results"
+save_path: "./docs/results"

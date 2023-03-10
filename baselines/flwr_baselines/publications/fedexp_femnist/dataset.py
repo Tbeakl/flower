@@ -172,6 +172,10 @@ def load_datasets(
         valloaders.append(DataLoader(val_datasets[i], batch_size=batch_size))
     return trainloaders, valloaders, DataLoader(testset, batch_size=batch_size)
 
+def members(tar, strip):
+    for member in tar.getmembers():
+        member.path = member.path.split('/', strip)[-1]
+        yield member
 
 def _download_data(home_dir, dataset_dir):
     """Downloads (if necessary) the FEMNIST dataset.
@@ -185,7 +189,7 @@ def _download_data(home_dir, dataset_dir):
                 str(home_dir / "femnist.tar.gz"),
             )
             
-        # Decompress dataset 
-        file = tarfile.open("femnist.tar.gz")
-        file.extractall(dataset_dir)
+        # Decompress dataset  
+        with tarfile.open("femnist.tar.gz") as file:
+            file.extractall(dataset_dir)
         print(f"Dataset extracted in {dataset_dir}")

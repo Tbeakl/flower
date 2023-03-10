@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 
 import model
 from dataset import load_datasets
-
+from copy import deepcopy
 
 class FlowerClient(fl.client.NumPyClient):
     """Standard Flower client for CNN training."""
@@ -24,8 +24,6 @@ class FlowerClient(fl.client.NumPyClient):
         valloader: DataLoader,
         device: torch.device,
         num_epochs: int,
-        learning_rate: float,
-        learning_rate_decay: float,
         gradient_clipping: bool,
         max_norm: float
     ):
@@ -34,8 +32,6 @@ class FlowerClient(fl.client.NumPyClient):
         self.valloader = valloader
         self.device = device
         self.num_epochs = num_epochs
-        self.learning_rate = learning_rate
-        self.learning_rate_decay = learning_rate_decay
         self.gradient_clipping = gradient_clipping
         self.max_norm = max_norm
 
@@ -53,17 +49,17 @@ class FlowerClient(fl.client.NumPyClient):
         self, parameters: NDArrays, config: Dict[str, Scalar]
     ) -> Tuple[NDArrays, int, Dict]:
         """Implements distributed fit function for a given client."""
-        self.learning_rate *= self.learning_rate_decay
         self.set_parameters(parameters)
         model.train(
             self.net,
             self.trainloader,
             self.device,
             epochs=self.num_epochs,
-            learning_rate=self.learning_rate,
+            learning_rate=config['learning_rate'],
             gradient_clipping=self.gradient_clipping,
             max_norm=self.max_norm
         )
+
         return self.get_parameters({}), len(self.trainloader), {}
 
     def evaluate(
@@ -79,8 +75,6 @@ def gen_client_fn(
     device: torch.device,
     num_epochs: int,
     batch_size: int,
-    learning_rate: float,
-    learning_rate_decay: float,
     gradient_clipping: bool,
     max_norm: float
 ) -> Tuple[Callable[[str], FlowerClient], DataLoader, int]:
@@ -95,8 +89,6 @@ def gen_client_fn(
         sending it to the server.
     batch_size : int
         The size of the local batches each client trains on.
-    learning_rate : float
-        The learning rate for the SGD  optimizer of clients.
 
     Returns
     -------
@@ -121,7 +113,7 @@ def gen_client_fn(
 
         # Create a  single Flower client representing a single organization
         return FlowerClient(
-            net, trainloader, valloader, device, num_epochs, learning_rate, learning_rate_decay, gradient_clipping=gradient_clipping, max_norm=max_norm
+            net, trainloader, valloader, device, num_epochs, gradient_clipping=gradient_clipping, max_norm=max_norm
         )
 
     return client_fn, testloader, len(trainloaders)

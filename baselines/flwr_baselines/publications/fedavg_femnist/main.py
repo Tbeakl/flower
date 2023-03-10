@@ -13,6 +13,14 @@ import client, utils, model
 
 DEVICE: torch.device = torch.device("cpu")
 
+def get_on_fit_config_fn(base_client_learning_rate: float, learning_rate_decay: float) -> Callable[[int], Dict[str, float]]:
+    def fit_config(server_round: int) -> Dict[str, float]:
+        config = {
+            "learning_rate": base_client_learning_rate * (learning_rate_decay ** server_round)
+        }
+        return config
+    return fit_config
+
 @hydra.main(config_path="docs/conf", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
     """Main function to run CNN federated learning on FEMNIST.
@@ -28,8 +36,6 @@ def main(cfg: DictConfig) -> None:
         num_epochs=cfg.num_epochs,
         batch_size=cfg.batch_size,
         device=DEVICE,
-        learning_rate=cfg.client_learning_rate,
-        learning_rate_decay=cfg.client_learning_rate_decay,
         gradient_clipping=cfg.gradient_clipping,
         max_norm=cfg.max_norm
     )
@@ -51,7 +57,8 @@ def main(cfg: DictConfig) -> None:
         evaluate_fn=evaluate_fn,
         initial_parameters=initial_parameters,
         evaluate_metrics_aggregation_fn=utils.weighted_average,
-        server_learning_rate=cfg.server_learning_rate
+        server_learning_rate=cfg.server_learning_rate,
+        on_fit_config_fn=get_on_fit_config_fn(cfg.client_learning_rate, cfg.client_learning_rate_decay),
     )
 
 

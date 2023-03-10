@@ -408,10 +408,13 @@ def train(
     epochs: int,
     device: str,
     learning_rate: float = 0.01,
+    weight_decay: float = 0, 
+    gradient_clipping: bool = False,
+    max_norm: float = 10
 ) -> None:
     """Train the network on the training set."""
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
+    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate, weight_decay=weight_decay)
     net.train()
     for _ in range(epochs):
         for images, labels in trainloader:
@@ -419,6 +422,8 @@ def train(
             optimizer.zero_grad()
             loss = criterion(net(images), labels)
             loss.backward()
+            if gradient_clipping:
+                torch.nn.utils.clip_grad_norm_(parameters=net.parameters(), max_norm=max_norm)
             optimizer.step()
 
 
@@ -440,7 +445,7 @@ def test(net: Module, testloader: DataLoader, device: str) -> Tuple[float, float
 
 
 def gen_on_fit_config_fn(
-    epochs_per_round: int, batch_size: int, client_learning_rate: float
+    epochs_per_round: int, batch_size: int, client_learning_rate: float, client_learning_rate_decay: float = 1
 ) -> Callable[[int], Dict[str, Scalar]]:
     """Generates ` On_fit_config`
 
@@ -459,7 +464,7 @@ def gen_on_fit_config_fn(
             "epoch_global": server_round,
             "epochs": epochs_per_round,
             "batch_size": batch_size,
-            "client_learning_rate": client_learning_rate,
+            "client_learning_rate": client_learning_rate * (client_learning_rate_decay ** server_round),
         }
         return local_config
 
