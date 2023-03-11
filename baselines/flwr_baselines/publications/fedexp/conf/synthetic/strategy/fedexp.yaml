@@ -5,4 +5,3 @@ init:
   epsilon: 0
   numberOfRoundsToEvaluateOver: 2
 eta_l: 0.1 # client's learning rate
-eta_l_decay: 1

@@ -114,7 +114,8 @@ def get_synthetic_dataset(  path_original_dataset: Path,
 
 
 def gen_on_fit_config_fn(
-    epochs_per_round: int, client_learning_rate: float, client_learning_rate_decay: float
+    epochs_per_round: int,
+    client_learning_rate: float,
 ) -> Callable[[int], Dict[str, Scalar]]:
     """Generates ` On_fit_config`
 
@@ -132,7 +133,7 @@ def gen_on_fit_config_fn(
         local_config: Dict[str, Scalar] = {
             "epoch_global": server_round,
             "epochs_per_round": epochs_per_round,
-            "client_learning_rate": client_learning_rate * (client_learning_rate_decay ** server_round),
+            "client_learning_rate": client_learning_rate,
         }
         return local_config
 

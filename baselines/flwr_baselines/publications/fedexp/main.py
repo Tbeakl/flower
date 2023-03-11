@@ -14,7 +14,7 @@ from hydra.utils import call, get_original_cwd, instantiate, to_absolute_path
 from omegaconf import DictConfig
 
 
-@hydra.main(config_path="conf/synthetic", config_name="config", version_base=None)
+@hydra.main(config_path="conf/cifar10", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
     """General-purpose main function that receives cfg from Hydra."""
     # Make sure we are on the right directory.
@@ -38,7 +38,7 @@ def main(cfg: DictConfig) -> None:
     ray_config = {"include_dashboard": cfg.ray_config.include_dashboard}
 
     on_fit_config_fn = call(
-        cfg.gen_on_fit_config_fn, client_learning_rate=cfg.strategy.eta_l, client_learning_rate_decay=cfg.strategy.eta_l_decay
+        cfg.gen_on_fit_config_fn, client_learning_rate=cfg.strategy.eta_l
     )
 
     # select strategy
@@ -58,8 +58,6 @@ def main(cfg: DictConfig) -> None:
     strategy.initial_parameters = initial_parameters
 
     client_fn = call(cfg.get_ray_client_fn, fed_dir=fed_dir)
-
-    client_fn("0")
 
     hist = fl.simulation.start_simulation(
         client_fn=client_fn,

@@ -1,0 +1,6 @@
+---
+name: FedProx
+init:
+  _target_: flwr.server.strategy.FedProx
+  proximal_mu: 0.01
+eta_l: 0.1 # client's learning rate
