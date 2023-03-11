@@ -1,0 +1,56 @@
+---
+dataset_name: "synthetic"
+epochs_per_round: 20
+alpha: 0.1
+beta: 0.1
+model_size: 1000
+num_samples_per_client: 30
+num_clients_per_round: 20
+num_total_clients: 20
+num_rounds: 200
+root_dir: "./data"
+cpus_per_client: 1
+gpus_per_client: 0
+hydra.job.chdir: False
+
+gen_federated_partitions:
+  _target_: synthetic.utils.gen_federated_partitions
+  dataset_name: ${dataset_name}
+  num_total_clients: ${num_total_clients}
+  num_samples_per_client: ${num_samples_per_client}
+  alpha: ${alpha}
+  beta: ${beta}
+  model_size: ${model_size}
+
+get_initial_parameters:
+  _target_: synthetic.utils.get_initial_parameters
+  model_size: ${model_size}
+
+get_eval_fn:
+  _target_: synthetic.utils.get_eval_fn
+  num_total_clients: ${num_total_clients}
+  num_samples_per_client: ${num_samples_per_client}
+  alpha: ${alpha}
+  beta: ${beta}
+  model_size: ${model_size}
+
+gen_on_fit_config_fn:
+  _target_: synthetic.utils.gen_on_fit_config_fn
+  epochs_per_round: ${epochs_per_round}
+
+plot_results:
+  _target_: synthetic.utils.plot_loss_from_history
+  dataset_name: ${dataset_name}
+  strategy_name: ${strategy.name}
+  save_plot_path: ./${dataset_name}_${strategy.name}.png
+
+get_ray_client_fn:
+  _target_: synthetic.client.get_ray_client_fn
+  fed_dir: None
+
+ray_config:
+  include_dashboard: False
+
+defaults:
+  - _self_
+  - strategy: "fedexp"
