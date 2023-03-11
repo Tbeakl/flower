@@ -11,7 +11,6 @@ from torch.utils.data import DataLoader
 
 from .utils import ClientDataset, get_cifar_model, get_transforms, test, train
 
-
 class RayClient(fl.client.NumPyClient):
     """Ray Virtual Client."""
 

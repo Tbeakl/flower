@@ -1,0 +1,11 @@
+---
+name: FedExp
+init:
+  _target_: fedexp_strategy.FedExP
+  epsilon: 0.001
+  numberOfRoundsToEvaluateOver: 2
+eta_l: 0.01 # client's learning rate
+eta_l_decay: 0.998
+weight_decay: 0.0001
+gradient_clipping: True
+max_norm: 10
