@@ -1,0 +1,85 @@
+# pylint: disable=too-many-arguments
+"""Defines the Synthetic Flower Client and a function to instantiate it."""
+
+
+from typing import Callable, Dict, Tuple
+import numpy.typing as npt
+import numpy as np
+
+import flwr as fl
+from flwr.common.typing import NDArrays, Scalar
+from torch.utils.data import DataLoader
+
+from dataset import load_datasets
+
+class FlowerClient(fl.client.NumPyClient):
+    """Standard Flower client for CNN training."""
+
+    def __init__(
+        self,
+        A: npt.NDArray,
+        b: npt.NDArray,
+        num_epochs: int,
+    ):
+        self.A = A
+        self.b = b
+        self.J = A.T.dot(A)
+        self.e = A.T.dot(b)
+        self.num_epochs = num_epochs
+
+    def get_parameters(self, config: Dict[str, Scalar]) -> NDArrays:
+        """Returns the parameters of the current net."""
+        return [self.weights]
+
+    def set_parameters(self, parameters: NDArrays) -> None:
+        """Changes the parameters of the model using the given ones."""
+        self.weights = parameters[0]
+
+    def fit(
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict]:
+        """Implements distributed fit function for a given client."""
+        self.set_parameters(parameters)
+        for _ in range(self.num_epochs):
+            grad = self.J.dot(self.weights) - self.e
+            self.weights = self.weights - config['client_learning_rate'] * grad
+
+        return self.get_parameters({}), len(self.b), {}
+
+    def evaluate(
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[float, int, Dict]:
+        """Implements distributed evaluation for a given client."""
+        self.set_parameters(parameters)
+        loss = np.linalg.norm(np.matmul(self.A, self.weights) - self.b) ** 2
+        return loss, len(self.b), {}
+
+
+def gen_client_fn(
+    num_clients: int,
+    model_size: int,
+    num_samples_per_client: int,
+    alpha: float,
+    beta: float,
+    num_epochs: int,
+) -> Tuple[Callable[[str], FlowerClient], DataLoader, int]:
+    """Generates the client function that creates the Flower Clients.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    Tuple[Callable[[str], FlowerClient], DataLoader, int]
+        A tuple containing the client function that creates Flower Clients and
+        the DataLoader that will be used for testing and the number of clients available
+    """
+    clientDatasets, testDataset = load_datasets(num_clients=num_clients, model_size=model_size, num_samples_per_client=num_samples_per_client, alpha=alpha, beta=beta)
+
+    def client_fn(cid: str) -> FlowerClient:
+        """Create a Flower client representing a single organization."""
+        return FlowerClient(
+            A=clientDatasets[int(cid)][0], b=clientDatasets[int(cid)][1], num_epochs=num_epochs
+        )
+
+    return client_fn, testDataset, num_clients

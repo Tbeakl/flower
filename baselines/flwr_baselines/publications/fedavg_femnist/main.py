@@ -1,6 +1,7 @@
 """Runs CNN federated learning for MNIST dataset."""
 
 from pathlib import Path
+from typing import Callable, Dict
 
 import flwr as fl
 from flwr.common.parameter import ndarrays_to_parameters
@@ -31,13 +32,13 @@ def main(cfg: DictConfig) -> None:
         An omegaconf object that stores the hydra config.
     """
 
-
     client_fn, testloader, num_clients = client.gen_client_fn(
         num_epochs=cfg.num_epochs,
         batch_size=cfg.batch_size,
         device=DEVICE,
         gradient_clipping=cfg.gradient_clipping,
-        max_norm=cfg.max_norm
+        max_norm=cfg.max_norm,
+        proportion_of_test_set_to_use=cfg.proportion_of_test_set_to_use
     )
 
     client_fraction_fit = cfg.num_participating_clients / num_clients
@@ -72,20 +73,16 @@ def main(cfg: DictConfig) -> None:
 
     file_suffix: str = (
         f"_B={cfg.batch_size}"
+        f"_ηl={cfg.client_learning_rate}"
+        f"_ηg={cfg.server_learning_rate}"
         f"_E={cfg.num_epochs}"
         f"_R={cfg.num_rounds}"
+        f"_run_num={cfg.run_num}"
     )
 
     np.save(
         Path(cfg.save_path) / Path(f"hist{file_suffix}"),
         history,  # type: ignore
-    )
-
-    utils.plot_metric_from_history(
-        history,
-        cfg.save_path,
-        cfg.expected_maximum,
-        file_suffix,
     )
 
 

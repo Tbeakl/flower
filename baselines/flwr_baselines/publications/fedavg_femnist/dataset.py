@@ -14,7 +14,6 @@ import numpy as np
 import torch
 import random
 import torchvision.transforms as transforms
-import os
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, Subset, random_split
 
 from pathlib import Path
@@ -116,6 +115,7 @@ def load_datasets(
     val_ratio: float = 0.1,
     batch_size: Optional[int] = 32,
     seed: Optional[int] = 42,
+    proportion_of_test_set_to_use: float = 1
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """Creates the dataloaders to be fed into the model.
 
@@ -163,16 +163,25 @@ def load_datasets(
 
     # Get the centralised test set
     testset = FEMNIST(centralized_mapping, data_dir, 'test', transform)
+    len_test = int(len(testset) / (1 / proportion_of_test_set_to_use))
+    lengths = [len(testset) - len_test, len_test]
+    _, testset = random_split(testset, lengths, torch.Generator().manual_seed(seed))
 
     # Split each partition into train/val and create DataLoader
     trainloaders = []
     valloaders = []
+
+
     # Need to loop through all the potential clients
     for i in range(len(train_datasets)):
         trainloaders.append(DataLoader(train_datasets[i], batch_size=batch_size, shuffle=True))
         valloaders.append(DataLoader(val_datasets[i], batch_size=batch_size))
     return trainloaders, valloaders, DataLoader(testset, batch_size=batch_size)
 
+def members(tar, strip):
+    for member in tar.getmembers():
+        member.path = member.path.split('/', strip)[-1]
+        yield member
 
 def _download_data(home_dir, dataset_dir):
     """Downloads (if necessary) the FEMNIST dataset.
@@ -186,8 +195,7 @@ def _download_data(home_dir, dataset_dir):
                 str(home_dir / "femnist.tar.gz"),
             )
             
-        # Decompress dataset 
+        # Decompress dataset  
         with tarfile.open("femnist.tar.gz") as file:
-            file.extractall(home_dir)
-        os.rename(home_dir / 'femnist', dataset_dir)
+            file.extractall(dataset_dir)
         print(f"Dataset extracted in {dataset_dir}")

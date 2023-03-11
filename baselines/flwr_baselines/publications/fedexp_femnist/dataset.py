@@ -115,6 +115,7 @@ def load_datasets(
     val_ratio: float = 0.1,
     batch_size: Optional[int] = 32,
     seed: Optional[int] = 42,
+    proportion_of_test_set_to_use: float = 1
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """Creates the dataloaders to be fed into the model.
 
@@ -162,10 +163,15 @@ def load_datasets(
 
     # Get the centralised test set
     testset = FEMNIST(centralized_mapping, data_dir, 'test', transform)
+    len_test = int(len(testset) / (1 / proportion_of_test_set_to_use))
+    lengths = [len(testset) - len_test, len_test]
+    _, testset = random_split(testset, lengths, torch.Generator().manual_seed(seed))
 
     # Split each partition into train/val and create DataLoader
     trainloaders = []
     valloaders = []
+
+
     # Need to loop through all the potential clients
     for i in range(len(train_datasets)):
         trainloaders.append(DataLoader(train_datasets[i], batch_size=batch_size, shuffle=True))

@@ -76,7 +76,8 @@ def gen_client_fn(
     num_epochs: int,
     batch_size: int,
     gradient_clipping: bool,
-    max_norm: float
+    max_norm: float,
+    proportion_of_test_set_to_use: float = 1
 ) -> Tuple[Callable[[str], FlowerClient], DataLoader, int]:
     """Generates the client function that creates the Flower Clients.
 
@@ -97,7 +98,8 @@ def gen_client_fn(
         the DataLoader that will be used for testing and the number of clients available
     """
     trainloaders, valloaders, testloader = load_datasets(
-        batch_size=batch_size
+        batch_size=batch_size,
+        proportion_of_test_set_to_use=proportion_of_test_set_to_use
     )
 
     def client_fn(cid: str) -> FlowerClient:

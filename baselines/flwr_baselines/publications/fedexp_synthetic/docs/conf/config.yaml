@@ -1,0 +1,12 @@
+num_clients: 20
+model_size: 1000
+num_samples_per_client: 30
+alpha: 0.1
+beta: 0.1
+num_rounds: 200
+num_epochs: 20
+client_learning_rate: 0.1
+epsilon: 0
+run_num: 1
+numberOfRoundsToEvaluateOver: 2
+save_path: "C:/Users/henry/Documents/University/Year_3_Part_2/FederatedLearning/flower/baselines/flwr_baselines/publications/fedexp_synthetic/docs/results"
