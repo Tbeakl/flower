@@ -1,6 +1,6 @@
 ---
 name: FedAvg
-expected_accuracy: 72.8
+expected_accuracy: 80.10
 init:
   _target_: flwr.server.strategy.FedAvg
   initial_parameters: None

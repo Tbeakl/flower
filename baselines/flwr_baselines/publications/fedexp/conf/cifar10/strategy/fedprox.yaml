@@ -1,5 +1,6 @@
 ---
 name: FedProx
+expected_accuracy: 80.16
 init:
   _target_: flwr.server.strategy.FedProx
   proximal_mu: 0.1

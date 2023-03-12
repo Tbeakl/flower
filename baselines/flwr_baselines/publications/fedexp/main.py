@@ -74,7 +74,7 @@ def main(cfg: DictConfig) -> None:
     hist_save_path: Path = path_original_dataset / cfg.dataset_name / cfg.strategy.name 
     hist_save_path.mkdir(parents=True, exist_ok=True)
 
-    np.save(hist_save_path / f"hist_{cfg.num_total_clients}", hist)
+    np.save(hist_save_path / f"hist_num_clients={cfg.num_total_clients}_num_rounds={cfg.num_rounds}_num_local_epochs={cfg.epochs_per_round}", hist)
 
 
 if __name__ == "__main__":

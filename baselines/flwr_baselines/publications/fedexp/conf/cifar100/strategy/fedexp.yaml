@@ -1,5 +1,6 @@
 ---
 name: FedExp
+expected_accuracy: 54.65
 init:
   _target_: fedexp_strategy.FedExP
   epsilon: 0.001
