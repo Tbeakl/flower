@@ -1,4 +1,7 @@
 """Runs AdaptiveFederated Optimization for CIFAR10/100."""
+import sys
+sys.path.append(r"C:\\Users\\henry\\Documents\\University\\Year_3_Part_2\\FederatedLearning\\flower\\baselines")
+
 from os import chdir
 from pathlib import Path
 
