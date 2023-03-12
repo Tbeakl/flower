@@ -68,6 +68,7 @@ class Net(nn.Module):
         output_tensor = self.dense2(output_tensor)
         return output_tensor
 
+#This is taken from Lab 1 as a method for dealing with the Federated EMNIST dataset
 class FEMNIST(Dataset):
     def __init__(
         self,
