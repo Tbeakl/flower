@@ -3,13 +3,15 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Callable, Dict, Tuple
 
-import flwr as fl
 import numpy as np
 import torch
-from flwr.common.typing import NDArrays, Scalar
 from torch.utils.data import DataLoader
 
+import flwr as fl
+from flwr.common.typing import NDArrays, Scalar
+
 from .utils import ClientDataset, get_cifar_model, get_transforms, test, train
+
 
 class RayClient(fl.client.NumPyClient):
     """Ray Virtual Client."""

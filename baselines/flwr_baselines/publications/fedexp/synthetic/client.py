@@ -1,17 +1,18 @@
 # pylint: disable=too-many-arguments
 """Defines the Synthetic Flower Client and a function to instantiate it."""
 
-
 from pathlib import Path
 from typing import Callable, Dict, Tuple
-import numpy.typing as npt
+
 import numpy as np
+import numpy.typing as npt
 
 import flwr as fl
 from flwr.common.typing import NDArrays, Scalar
 
+
 class FlowerClient(fl.client.NumPyClient):
-    """Standard Flower client for CNN training."""
+    """Flower client for Linear Regression training."""
 
     def __init__(
         self,
@@ -24,11 +25,11 @@ class FlowerClient(fl.client.NumPyClient):
         self.e = A.T.dot(b)
 
     def get_parameters(self, config: Dict[str, Scalar]) -> NDArrays:
-        """Returns the parameters of the current net."""
+        """Returns the weights of the current model"""
         return [self.weights]
 
     def set_parameters(self, parameters: NDArrays) -> None:
-        """Changes the parameters of the model using the given ones."""
+        """Changes the weights of the model using the given ones."""
         self.weights = parameters[0]
 
     def fit(
@@ -60,7 +61,8 @@ def get_ray_client_fn(
 
     Parameters
     ----------
-
+        fed_dir: Path
+            The directory containing all the partitions of data for the clients
     Returns
     -------
     Tuple[Callable[[str], FlowerClient], DataLoader, int]

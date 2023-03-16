@@ -5,9 +5,11 @@ from typing import Callable, Dict, Optional, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
+
 from flwr.common.parameter import ndarrays_to_parameters
 from flwr.common.typing import NDArrays, Parameters, Scalar
 from flwr.server.history import History
+
 
 def gen_federated_partitions(path_original_dataset: Path,
                             dataset_name: str,
@@ -39,6 +41,7 @@ def gen_federated_partitions(path_original_dataset: Path,
         / f"{num_total_clients}"
         / f"{num_samples_per_client}"
         / f"{model_size}"
+        / f"{seed}"
         / f"{alpha:.2f}"
         / f"{beta:.2f}"
     )
@@ -66,13 +69,14 @@ def get_synthetic_dataset(  path_original_dataset: Path,
                             num_samples_per_client: int,
                             alpha: float,
                             beta: float,
-                            seed: int) -> Tuple[npt.NDArray, npt.NDArray]:
+                            seed: int = 42) -> Tuple[npt.NDArray, npt.NDArray]:
     np.random.seed(seed)
     full_dataset_path = (path_original_dataset /
                         "synthetic" 
                         / f"{num_clients}"
                         / f"{num_samples_per_client}"
                         / f"{model_size}"
+                        / f"{seed}"
                         / f"{alpha:.2f}"
                         / f"{beta:.2f}")
     
@@ -121,11 +125,10 @@ def gen_on_fit_config_fn(
 
     Args:
         epochs_per_round (int):  number of local epochs.
-        batch_size (int): Batch size
         client_learning_rate (float): Learning rate of clinet
 
     Returns:
-        Callable[[int], Dict[str, Scalar]]: Function to be called at the beginnig of each rounds.
+        Callable[[int], Dict[str, Scalar]]: Function to be called at the beginning of each rounds.
     """
 
     def on_fit_config(server_round: int) -> Dict[str, Scalar]:
@@ -146,7 +149,8 @@ def get_eval_fn(
     model_size: int,
     num_samples_per_client: int,
     alpha: float,
-    beta: float
+    beta: float,
+    seed: int = 42
 ) -> Callable[
     [int, NDArrays, Dict[str, Scalar]], Optional[Tuple[float, Dict[str, Scalar]]]
 ]:
@@ -154,11 +158,20 @@ def get_eval_fn(
 
     Parameters
     ----------
-    testloader : DataLoader
-        The dataloader to test the model with.
-    device : torch.device
-        The device to test the model on.
-
+    path_original_dataset : Path
+        The path to the original dataset
+    num_total_clients : int
+        The number of clients which the dataset was generated for
+    model_size: int
+        The number of parameters the model takes in
+    num_samples_per_client: int
+        The number of samples available at each client
+    alpha: float
+        The alpha value used in the generation of the dataset
+    beta: float
+        The beta value used in the generation of the dataset
+    seed: int
+        The seed used in the random number generator for the dataset
     Returns
     -------
     Callable[ [int, NDArrays, Dict[str, Scalar]], Optional[Tuple[float, Dict[str, Scalar]]] ]
@@ -170,6 +183,7 @@ def get_eval_fn(
                         / f"{num_total_clients}"
                         / f"{num_samples_per_client}"
                         / f"{model_size}"
+                        / f"{seed}"
                         / f"{alpha:.2f}"
                         / f"{beta:.2f}")
     

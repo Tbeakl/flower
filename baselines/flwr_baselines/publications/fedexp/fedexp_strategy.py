@@ -8,8 +8,8 @@ Paper: https://arxiv.org/pdf/2106.04502.pdf
 from copy import deepcopy
 from logging import WARNING
 from typing import Callable, Dict, List, Optional, Tuple, Union
-import numpy as np
 
+import numpy as np
 
 from flwr.common import (
     EvaluateIns,
@@ -24,7 +24,6 @@ from flwr.common import (
 from flwr.common.logger import log
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
-
 from flwr.server.strategy.aggregate import aggregate
 from flwr.server.strategy.fedavg import FedAvg
 
@@ -37,7 +36,7 @@ than or equal to the values of `min_fit_clients` and `min_evaluate_clients`.
 
 # flake8: noqa: E501
 class FedExP(FedAvg):
-    """Configurable FedAvg with Momentum strategy implementation."""
+    """Configurable FedExP implementation."""
 
     # pylint: disable=too-many-arguments,too-many-instance-attributes,line-too-long
     def __init__(
@@ -89,6 +88,10 @@ class FedExP(FedAvg):
             Whether or not accept rounds containing failures. Defaults to True.
         initial_parameters : Parameters, optional
             Initial global model parameters.
+        epsilon : float, optional
+            The amount added to controll size of server learning step, especially in later rounds
+        numberOfRoundsToEvaluateOver : int, optional
+            The number of rounds which the weights are averaged over when evaluating
         """
 
         if (

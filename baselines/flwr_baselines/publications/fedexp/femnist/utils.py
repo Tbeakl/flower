@@ -1,31 +1,28 @@
-"""Util functions for CIFAR10/100.
-Copied from adaptive_federated_optimization with subtle changes around the training process
+"""Util functions for FEMNIST
 """
-from collections import OrderedDict
-import faulthandler
-from pathlib import Path
+import csv
 import tarfile
+from collections import OrderedDict
+from pathlib import Path
+from typing import *
 from typing import Callable, Dict, Optional, Tuple
 
+import gdown
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import gdown
-import csv
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision.transforms as transforms
+from PIL import Image
+from PIL.Image import Image as ImageType
+from torch.nn import Module
+from torch.utils.data import DataLoader, Dataset
+
 from flwr.common.parameter import ndarrays_to_parameters
 from flwr.common.typing import NDArrays, Parameters, Scalar
 from flwr.server.history import History
-from PIL import Image
-from torch.nn import Module
-import torch.nn.functional as F
-import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset
-import torchvision.transforms as transforms
 
-from typing import *
-
-from PIL import Image
-from PIL.Image import Image as ImageType
 
 class Net(nn.Module):
     """Convolutional Neural Network architecture as described in Reddi 2021
@@ -167,14 +164,12 @@ def get_femnist_transform() -> Callable[[ImageType], Any]:
     )
 
 def get_femnist_model() -> Module:
-    """Generates ResNet18 model using GroupNormalization rather than
-    BatchNormalization. Two groups are used.
+    """Generates a CNN for the CR task
 
     Args:
-        num_classes (int, optional): Number of classes {10,100}. Defaults to 10.
 
     Returns:
-        Module: ResNet18 network.
+        Module: CNN.
     """
     return Net()
 
@@ -273,10 +268,13 @@ def gen_on_fit_config_fn(
     Args:
         epochs_per_round (int):  number of local epochs.
         batch_size (int): Batch size
-        client_learning_rate (float): Learning rate of clinet
-
+        client_learning_rate (float): Learning rate of client
+        client_learning_rate_decay (float): Value multiped onto the client learning rate each round
+        weight_decay (float): The value for weight decay in the local optimizer
+        gradient_clipping (bool): Should the local optimizer use gradient clipping
+        max_norm (float): If gradient clipping is used then this specifies the max norm passed in
     Returns:
-        Callable[[int], Dict[str, Scalar]]: Function to be called at the beginnig of each rounds.
+        Callable[[int], Dict[str, Scalar]]: Function to be called at the beginning of each rounds.
     """
 
     def on_fit_config(server_round: int) -> Dict[str, Scalar]:

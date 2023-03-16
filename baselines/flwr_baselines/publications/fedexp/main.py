@@ -1,20 +1,19 @@
 """Runs FedExp (and other strategies shown in paper) across variety of datasets"""
-import sys
-sys.path.append(r"C:\\Users\\henry\\Documents\\University\\Year_3_Part_2\\FederatedLearning\\flower\\baselines")
 
-import numpy as np
 from os import chdir
 from pathlib import Path
 
-import flwr as fl
 import hydra
-from flwr.common.typing import Parameters
-from flwr.server import ServerConfig
+import numpy as np
 from hydra.utils import call, get_original_cwd, instantiate, to_absolute_path
 from omegaconf import DictConfig
 
+import flwr as fl
+from flwr.common.typing import Parameters
+from flwr.server import ServerConfig
 
-@hydra.main(config_path="conf/femnist", config_name="config", version_base=None)
+
+@hydra.main(config_path="conf/synthetic", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
     """General-purpose main function that receives cfg from Hydra."""
     # Make sure we are on the right directory.

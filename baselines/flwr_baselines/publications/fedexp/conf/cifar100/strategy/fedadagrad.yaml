@@ -4,7 +4,7 @@ expected_accuracy: 49.64
 init:
   _target_: flwr.server.strategy.FedAdagrad
   eta: 0.1
-  tau: 0.0316
+  tau: 0.01
 eta_l: 0.01
 eta_l_decay: 0.998
 weight_decay: 0.0001

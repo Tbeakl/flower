@@ -3,12 +3,14 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Callable, Dict, Tuple
 
-import flwr as fl
 import torch
-from flwr.common.typing import NDArrays, Scalar
 from torch.utils.data import DataLoader
 
+import flwr as fl
+from flwr.common.typing import NDArrays, Scalar
+
 from .utils import FEMNIST, get_femnist_model, get_femnist_transform, test, train
+
 
 class RayClient(fl.client.NumPyClient):
     """Ray Virtual Client."""
@@ -71,7 +73,6 @@ def get_ray_client_fn(
 
     Args:
         fed_dir (Path): Path containing local datasets in the form ./client_id/train.pt
-        num_classes (int, optional): Number of classes. Defaults to 10.
 
     Returns:
         Callable[[str], RayClient]: [description]

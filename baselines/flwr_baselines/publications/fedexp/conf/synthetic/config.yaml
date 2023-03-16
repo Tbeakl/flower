@@ -8,6 +8,7 @@ num_samples_per_client: 30
 num_clients_per_round: 20
 num_total_clients: 20
 num_rounds: 200
+seed: 0
 root_dir: "./data"
 cpus_per_client: 1
 gpus_per_client: 0
@@ -20,6 +21,7 @@ gen_federated_partitions:
   num_samples_per_client: ${num_samples_per_client}
   alpha: ${alpha}
   beta: ${beta}
+  seed: ${seed}
   model_size: ${model_size}
 
 get_initial_parameters:
@@ -33,6 +35,7 @@ get_eval_fn:
   alpha: ${alpha}
   beta: ${beta}
   model_size: ${model_size}
+  seed: ${seed}
 
 gen_on_fit_config_fn:
   _target_: synthetic.utils.gen_on_fit_config_fn
