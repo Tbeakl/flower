@@ -56,7 +56,7 @@ This is the CNN described for character recognition in the EMNIST dataset as des
 | MaxPool2d | (12,12,64)   | 0                         |            | pool size = (2,2)              |
 | Dropout   | (12,12,64)   | 0                         |            | p = 0.25                       |
 | Flatten   | 9216         | 0                         |            |                                |
-| Dense     | 128          | 1179776                   | ReLU       |                                |
+| Dense     | 128          | 1,179,776                   | ReLU       |                                |
 | Dropout   | 128          | 0                         |            | p = 0.5                        |
 | Dense     | 62           | 7998                      | softmax    |                                |
 

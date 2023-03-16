@@ -1,3 +1,7 @@
+# This should really be moved into the Flower server strategy folder with the other strategies, but having it here
+# means that it is easier to move to different environments during development because they can just install the normal flower
+# via pip.
+
 """FEDEXP: SPEEDING UP FEDERATED AVERAGING VIA
 EXTRAPOLATION [Jhunjhunwala et al., 2019] strategy.
 
