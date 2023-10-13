@@ -1,0 +1,11 @@
+---
+name: FedProx
+expected_accuracy: 85.77
+init:
+  _target_: flwr.server.strategy.FedProx
+  proximal_mu: 0.001
+eta_l: 0.1 # client's learning rate
+eta_l_decay: 0.998
+weight_decay: 0.0001
+gradient_clipping: True
+max_norm: 10

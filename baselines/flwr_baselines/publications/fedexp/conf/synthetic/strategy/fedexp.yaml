@@ -1,0 +1,7 @@
+---
+name: FedExp
+init:
+  _target_: fedexp_strategy.FedExP
+  epsilon: 0
+  numberOfRoundsToEvaluateOver: 2
+eta_l: 0.1 # client's learning rate
